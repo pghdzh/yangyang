@@ -1,0 +1,7 @@
+<svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!-- 浅青色圆形背景 -->
+  <circle cx="8" cy="8" r="8" fill="#2e88c9" />
+  <!-- 白色“秧”字，使用衬线体风格 -->
+  <text x="8" y="11" font-size="9" text-anchor="middle" fill="#fff" font-family="serif"
+    font-weight="bold">秧</text>
+</svg>
