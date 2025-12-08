@@ -118,6 +118,16 @@
 import { ref, onMounted, onUnmounted, nextTick, computed, watch } from "vue";
 import { getRankingList, addRankingItem } from "@/api/modules/ranking";
 
+const bgm = new Audio("/game/bgm.mp3");
+bgm.loop = true;
+bgm.volume = 0.4;
+
+const sounds = {
+  flap: new Audio("/game/flap.mp3"),
+  hit: new Audio("/game/click.mp3"),
+  score: new Audio("/game/score.mp3"),
+};
+
 /** 可配置项与默认值 */
 const CHARACTER_KEY = "yangyang_game";
 const page = 1;
@@ -255,6 +265,8 @@ function resetGame() {
 }
 
 function startOrRestart() {
+  bgm.play();
+  sounds.hit.play();
   resetGame();
   state.value = "running";
   lastTime = performance.now();
@@ -277,6 +289,8 @@ function flap() {
   if (state.value !== "running") return;
   birdV.value = FLAP_VEL;
   birdRot.value = MAX_ROT;
+  sounds.flap.currentTime = 0;
+  sounds.flap.play();
 }
 
 const collisionRadius = () => BIRD_SIZE * COLLISION_RATIO;
@@ -296,7 +310,10 @@ function checkCollision(): boolean {
   }
   return false;
 }
-
+function playVoice(name: string) {
+  const audio = new Audio(`/game/${name}`);
+  audio.play().catch((e) => console.warn("音频播放失败：", e));
+}
 function loop(now: number) {
   const dt = Math.min(40, now - lastTime);
   lastTime = now;
@@ -330,6 +347,10 @@ function loop(now: number) {
   }
 
   if (checkCollision()) {
+    let textNum = Math.floor(Math.random() * 9);
+    let overText = `audio (${textNum}).mp3`;
+    playVoice(overText);
+    bgm.pause();
     state.value = "over";
     let imgNum = Math.floor(Math.random() * 4) + 1;
     overImg.value = `/game/over (${imgNum}).png`;
