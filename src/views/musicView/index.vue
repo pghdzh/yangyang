@@ -563,8 +563,8 @@ onMounted(async () => {
   const isM = isMobile.value;
   const folder = isM ? "/mp1" : "/mp2";
   // 随机选择 1..4，如果没有资源请保证路径存在
-  // const idx = Math.floor(Math.random() * 4) + 1;
-  videoSrc.value = `${folder}/1 (1).mp4`;
+  const idx = Math.floor(Math.random() * 4) + 1;
+  videoSrc.value = `${folder}/1 (${idx}).mp4`;
   videoClass.value = isM ? "landscape" : "portrait";
 
   await fetchList();

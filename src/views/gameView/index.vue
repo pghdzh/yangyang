@@ -125,7 +125,6 @@ bgm.volume = 0.4;
 const sounds = {
   flap: new Audio("/game/flap.mp3"),
   hit: new Audio("/game/click.mp3"),
-  score: new Audio("/game/score.mp3"),
 };
 
 /** 可配置项与默认值 */
