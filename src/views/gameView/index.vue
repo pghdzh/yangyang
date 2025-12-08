@@ -116,7 +116,11 @@
 
 <script setup lang="ts">
 import { ref, onMounted, onUnmounted, nextTick, computed, watch } from "vue";
-import { getRankingList, addRankingItem } from "@/api/modules/ranking";
+import {
+  getRankingList,
+  addRankingItem,
+  updateRankingItem,
+} from "@/api/modules/ranking";
 
 const bgm = new Audio("/game/bgm.mp3");
 bgm.loop = true;
@@ -536,9 +540,7 @@ const fetchRanking = async () => {
       character_key: CHARACTER_KEY,
     });
     if (res && res.success) {
-      rankingList.value = Array.isArray(res.data)
-        ? res.data
-        : res.data?.items ?? [];
+      rankingList.value = res.data;
     } else {
       console.error("获取排行榜失败", res?.message);
       rankingList.value = [];
@@ -579,18 +581,59 @@ const refreshRanking = async () => {
 const submitScore = async () => {
   if (!canSubmit.value) return;
   submitting.value = true;
+
   try {
     const payload = {
       character_key: CHARACTER_KEY,
       nickname: name.value.trim(),
       count: score.value || 0,
     };
-    const res = await addRankingItem(payload);
-    if (res && res.success) {
-      await fetchRanking();
-      rankingDrawerOpen.value = true;
+
+    // 防护：昵称为空不提交
+    if (!payload.nickname) {
+      console.warn("昵称为空，取消提交");
+      return;
+    }
+
+    // 找到本地排行榜中同名且 count 最大的那一项（若有重复昵称）
+    const existing = rankingList.value.reduce<RankingItem | null>(
+      (acc, cur) => {
+        if (cur.nickname === payload.nickname) {
+          if (!acc || cur.count > acc.count) return cur;
+        }
+        return acc;
+      },
+      null
+    );
+
+    if (existing) {
+      // 已存在同名记录
+      if (payload.count > existing.count) {
+        // 只在新分数更高时调用更新接口
+        const res = await updateRankingItem(existing.id as number, {
+          count: payload.count,
+          // 你也可以在这里同时更新 nickname 或 character_key（若需要）
+        });
+        if (res && res.success) {
+          await fetchRanking();
+          rankingDrawerOpen.value = true;
+        } else {
+          console.error("更新排行榜失败", res?.message);
+        }
+      } else {
+        // 新提交分数不高于已有分数 — 不做 update，可以直接打开抽屉或提示
+        console.info("已有更高或相同分数，未更新排行榜");
+        rankingDrawerOpen.value = true;
+      }
     } else {
-      console.error("提交排行榜失败", res?.message);
+      // 不存在同名，直接新增
+      const res = await addRankingItem(payload);
+      if (res && res.success) {
+        await fetchRanking();
+        rankingDrawerOpen.value = true;
+      } else {
+        console.error("提交排行榜失败", res?.message);
+      }
     }
   } catch (err) {
     console.error("提交排行榜异常", err);
