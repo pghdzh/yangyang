@@ -67,8 +67,16 @@ const acknowledgements = reactive([
     suggestion: "把秧秧库街区人物介绍放在资源分享页面(功能建议)",
   },
   {
+    nickname: "大厨小露",
+    suggestion: "小游戏结束触发语音彩蛋(功能建议)",
+  },
+  {
     nickname: "随风漂泊的冒险家",
     suggestion: "小游戏管道小鸟重构为秧秧风格(功能建议)",
+  },
+   {
+    nickname: "风所教会她的",
+    suggestion: "小游戏增加bgm和音效(功能建议)",
   },
 ]);
 </script>
