@@ -411,47 +411,48 @@ async function sendMessage() {
     //  throw new Error("测试错误");
     const history = chatLog.value.filter((msg) => !msg.isEgg && !msg.isError);
     const botReply = await sendMessageToHui(userText, history);
-    chatLog.value.push({
-      id: Date.now() + 1,
-      role: "bot",
-      text: botReply,
-    });
-
-    // —— 鼓励彩蛋：5% 概率触发 ——
-    if (Date.now() - lastEggTime > coolDownPeriod && Math.random() < 0.05) {
-      // 随机挑一条
-      let voiceId = Math.floor(Math.random() * encourageEggs.length);
-      const egg = encourageEggs[voiceId];
-
-      // 记录触发过的语音编号
-      triggeredVoices.add(voiceId || 0);
-
-      // 保存到 localStorage
-      localStorage.setItem(
-        "triggeredVoices",
-        JSON.stringify([...triggeredVoices])
-      );
-
-      // 播放对应语音（不带 .mp3 后缀）
-      playVoice(egg.file);
-      // 推入带标记的彩蛋消息
+    if (botReply == "error") {
       chatLog.value.push({
         id: Date.now() + 2,
         role: "bot",
-        text: `<p style="color:#2e88c9; font-style: italic;font-weight: bold">${egg.text}</p>`,
-        isEgg: true,
+        text: "API余额耗尽了，去b站提醒我充钱吧",
+        isError: true,
       });
-      lastEggTime = Date.now();
+    } else {
+      chatLog.value.push({
+        id: Date.now() + 1,
+        role: "bot",
+        text: botReply,
+      }); // —— 鼓励彩蛋：5% 概率触发 ——
+      if (Date.now() - lastEggTime > coolDownPeriod && Math.random() < 0.05) {
+        // 随机挑一条
+        let voiceId = Math.floor(Math.random() * encourageEggs.length);
+        const egg = encourageEggs[voiceId];
+
+        // 记录触发过的语音编号
+        triggeredVoices.add(voiceId || 0);
+
+        // 保存到 localStorage
+        localStorage.setItem(
+          "triggeredVoices",
+          JSON.stringify([...triggeredVoices])
+        );
+
+        // 播放对应语音（不带 .mp3 后缀）
+        playVoice(egg.file);
+        // 推入带标记的彩蛋消息
+        chatLog.value.push({
+          id: Date.now() + 2,
+          role: "bot",
+          text: `<p style="color:#2e88c9; font-style: italic;font-weight: bold">${egg.text}</p>`,
+          isEgg: true,
+        });
+        lastEggTime = Date.now();
+      }
+      // —— 彩蛋结束 ——
     }
-    // —— 彩蛋结束 ——
   } catch (e) {
     console.error(e);
-    chatLog.value.push({
-      id: Date.now() + 2,
-      role: "bot",
-      text: "API余额耗尽了，去b站提醒我充钱吧",
-      isError: true,
-    });
   } finally {
     loading.value = false;
     await scrollToBottom();
